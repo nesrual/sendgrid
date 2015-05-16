@@ -10,7 +10,12 @@ module SendGrid
     :subscriptiontrack,
     :footer,
     :spamcheck,
-    :bypass_list_management
+    :bypass_list_management,
+    :templates
+  ]
+
+  VALID_TEMPLATES_OPTIONS = [
+    :template_id
   ]
 
   VALID_GANALYTICS_OPTIONS = [
@@ -150,6 +155,12 @@ module SendGrid
     @spamcheck_score = score
   end
 
+  # Set templates option
+  def sendgrid_templates_options(options)
+    @templates_options = []
+    options.each { |option| @templates_options << option if VALID_TEMPLATES_OPTIONS.include?(option[0].to_sym) }
+  end
+
   # Call within mailer method to set custom google analytics options
   # http://sendgrid.com/documentation/appsGoogleAnalytics
   def sendgrid_ganalytics_options(options)
@@ -283,6 +294,13 @@ module SendGrid
         when :spamcheck
           if self.class.default_spamcheck_score || @spamcheck_score
             filters[:spamcheck]['settings']['maxscore'] = @spamcheck_score || self.class.default_spamcheck_score
+          end
+
+        when :templates
+          if @templates_options
+            @templates_options.each do |key, value|
+              filters[:templates]['settings'][key.to_s] = value
+            end
           end
 
         when :ganalytics
